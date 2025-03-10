@@ -6,10 +6,18 @@ This guide will help you set up and use LangChain to analyze test reports using 
 ---
 ## **🛠 Step 1: Setting Up the Project**
 
-### **1.1 Create a Project Folder**
+### **1.1 Clone the Repository and Create a Project Folder**
 1. Open **Visual Studio Code**.
-2. Create a new folder for your project (e.g., `langchain_test_analyzer`).
-3. Open this folder in VS Code (**File > Open Folder**).
+2. Clone the repository if you're setting up an existing project:
+   ```sh
+   git clone <your-repo-url> langchain_test_analyzer
+   cd langchain_test_analyzer
+   ```
+3. If you're starting fresh, create a new folder for your project:
+   ```sh
+   mkdir langchain_test_analyzer
+   cd langchain_test_analyzer
+   ```
 
 ### **1.2 Set Up a Virtual Environment**
 A virtual environment helps isolate dependencies and avoids conflicts with system-installed packages.
@@ -31,10 +39,28 @@ source venv/bin/activate
 ---
 ## **📦 Step 2: Install Dependencies**
 
-With the virtual environment active, install the required libraries:
+All required dependencies are listed in `requirements.txt`. First, ensure the file exists by creating it in the **project root** (`langchain_test_analyzer` folder):
 
+### **2.1 Create `requirements.txt`**
+1. In the **project root**, create a new file named `requirements.txt`.
+2. Add the following dependencies:
+
+```txt
+langchain
+ollama
+pandas
+xmltodict
+beautifulsoup4
+tiktoken
+pytest
+pytest-xml
+data_to_xml
+```
+
+### **2.2 Install Dependencies**
+Run the following command to install all dependencies from `requirements.txt`:
 ```sh
-pip install langchain ollama pandas xmltodict beautifulsoup4 tiktoken pytest pytest-xml data_to_xml
+pip install -r requirements.txt
 ```
 
 🔍 **Verify Installation:**
@@ -49,12 +75,7 @@ If no errors appear, you're good to go.
 
 JUnit reports are typically XML files. We'll generate one using a Python testing framework.
 
-### **3.1 Install `pytest` and `pytest-xml`**
-```sh
-pip install pytest pytest-xml data_to_xml
-```
-
-### **3.2 Create a Sample Test File**
+### **3.1 Create a Sample Test File**
 1. Inside your project folder, create a new folder called `tests`.
 2. Inside `tests`, create a file called `test_example.py`.
 3. Add the following code:
@@ -73,32 +94,13 @@ def test_api():
     assert response_status == 200
 ```
 
-### **3.3 Run Tests and Generate a Report**
+### **3.2 Run Tests and Generate a Report**
 Run the tests and generate a JUnit report:
 ```sh
 pytest --junitxml=test_report.xml
 ```
 
-After running, you should see `test_report.xml` in your project folder. If you encounter an error related to missing modules (`pytest_item_dict` or `data_to_xml`), try the following steps:
-
-1. Create a `requirements.txt` file (if not already present):
-   ```sh
-   echo "pytest
-   pytest-xml
-   data_to_xml" > requirements.txt
-   ```
-2. Install all required dependencies:
-   ```sh
-   pip install -r requirements.txt
-   ```
-3. Clear the Python cache:
-   ```sh
-   python -m pip cache purge
-   ```
-4. Finally, retry running the test command:
-   ```sh
-   pytest --junitxml=test_report.xml
-   ```
+After running, you should see `test_report.xml` in your project folder.
 
 ---
 ## **📊 Step 4: Load & Parse the JUnit Test Report**
@@ -179,31 +181,6 @@ python analyze_failures.py
 ```
 ✅ This will analyze failures and suggest possible root causes.
 
-If you encounter an `OllamaEndpointNotFoundError` (404), it likely means the model is not available locally. Try pulling the model again using:
-```sh
-ollama pull llama3
-```
-
-If the error persists, ensure the Ollama service is running by executing:
-```sh
-ollama list
-```
-If no models are listed, restart Ollama and retry pulling the model.
-
-Then, re-run your script:
-```sh
-python analyze_failures.py
-```
-
-If you encounter an error due to a missing module, add it to `requirements.txt` and reinstall dependencies:
-
-```sh
-echo "missing_module_name" >> requirements.txt
-pip install -r requirements.txt
-```
-
-Then, retry running the script.
-
 ---
 ## **📝 Step 6: Generate a Test Summary**
 
@@ -212,8 +189,7 @@ Add a summary function to `analyze_failures.py`:
 ```python
 summary_prompt = PromptTemplate(
     input_variables=["analysis"],
-    template="Summarize the test report:
-{analysis}"
+    template="Summarize the test report:\n{analysis}"
 )
 
 def summarize_results(analysis):
